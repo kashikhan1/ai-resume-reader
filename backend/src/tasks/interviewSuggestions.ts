@@ -1,5 +1,5 @@
 import { task } from "@langchain/langgraph";
-import { llm } from "../llm-model/ollama";
+import { llm } from "../llm-model/model";
 
 export const interviewSuggestions = task("generateInterviewSuggestions", async ({ resumeText, jobDescription }) => {
   const msg = await llm.invoke(`You are an **AI-powered interview coach** with expertise in **hiring, career coaching, and recruitment best practices**. Your task is to analyze the provided resume and job description to generate **customized, role-specific interview questions and suggested answers** that align with the candidate's background and job requirements.

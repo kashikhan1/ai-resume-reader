@@ -29,7 +29,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import { Textarea } from "@/components/ui/textarea";
- 
+
 interface FeedbackOptions {
   contentAnalysis: boolean;
   atsAnalysis: boolean;
@@ -44,6 +44,7 @@ export default function ResumePage() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [jobDescription, setJobDescription] = useState<string>("");
+  const [fileSelected, setFileSelected] = useState(false)
 
   const [feedbackOptions, setFeedbackOptions] = useState<FeedbackOptions>({
     contentAnalysis: true,
@@ -80,10 +81,13 @@ export default function ResumePage() {
         });
       }, 500);
 
-      const response = await fetch(`${process.env.BACKEND_API_URL}/upload`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -110,6 +114,11 @@ export default function ResumePage() {
       <FileText className="w-12 h-12 text-blue-500" />
     );
   };
+
+  const firstActiveTab = Object.keys(feedbackOptions).find(
+    (key) => feedbackOptions[key as keyof typeof feedbackOptions]
+  );
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-rose-100 dark:from-purple-900 dark:via-pink-900 dark:to-rose-900 p-4">
@@ -214,33 +223,42 @@ export default function ResumePage() {
                   className="w-full h-32"
                 />
               </div>
+              <div>
+                <Button
+                  onClick={() => handleFileUpload(file!)}
+                  className="mt-6 w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                >
+                  Upload and Analyze
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
           <div className="space-y-6">
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-2xl">Upload Your Resume</CardTitle>
-                <CardDescription>
-                  Drag and drop your resume file or click to browse
-                </CardDescription>
+                <CardDescription>Drag and drop your resume file or click to browse</CardDescription>
               </CardHeader>
               <CardContent>
                 <div
                   className={`relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg transition-colors ${
-                    isUploading
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-300 hover:border-primary/50"
+                    isUploading ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary/50"
                   }`}
                   onDragOver={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    e.preventDefault()
+                    e.stopPropagation()
                   }}
                   onDrop={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const file = e.dataTransfer.files[0];
-                    if (file) handleFileUpload(file);
+                    e.preventDefault()
+                    e.stopPropagation()
+                    const file = e.dataTransfer.files[0]
+                    if (file) {
+                      setFileSelected(true)
+                      handleFileUpload(file)
+                    } else {
+                      setError("No file dropped. Please try again.")
+                    }
                   }}
                 >
                   <input
@@ -250,8 +268,12 @@ export default function ResumePage() {
                     className="hidden"
                     accept=".pdf,.docx"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileUpload(file);
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        handleFileUpload(file)
+                      } else {
+                        setError("No file selected. Please choose a file to upload.")
+                      }
                     }}
                   />
 
@@ -268,11 +290,24 @@ export default function ResumePage() {
                         {isUploading && (
                           <div className="w-full max-w-xs mt-4">
                             <Progress value={uploadProgress} className="h-2" />
-                            <p className="text-xs text-center mt-2">
-                              {uploadProgress}%
-                            </p>
+                            <p className="text-xs text-center mt-2">{uploadProgress}%</p>
                           </div>
                         )}
+                      </motion.div>
+                    ) : fileSelected ? (
+                      <motion.div
+                        className="flex flex-col items-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        <CheckCircle2 className="w-10 h-10 mb-3 text-green-500" />
+                        <p className="text-sm font-medium">File selected</p>
+                        <Button
+                          onClick={() => handleFileUpload(file!)}
+                          className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                        >
+                          Upload and Analyze
+                        </Button>
                       </motion.div>
                     ) : (
                       <motion.div
@@ -288,12 +323,9 @@ export default function ResumePage() {
                           Select File
                         </Button>
                         <p className="mb-2 text-sm text-gray-500">
-                          <span className="font-semibold">Click to upload</span>{" "}
-                          or drag and drop
+                          <span className="font-semibold">Click to upload</span> or drag and drop
                         </p>
-                        <p className="text-xs text-gray-500">
-                          PDF or DOCX (MAX. 5MB)
-                        </p>
+                        <p className="text-xs text-gray-500">PDF or DOCX (MAX. 5MB)</p>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -304,9 +336,10 @@ export default function ResumePage() {
                       variant="ghost"
                       className="absolute top-2 right-2"
                       onClick={(e) => {
-                        e.preventDefault();
-                        setFile(null);
-                        setResult(null);
+                        e.preventDefault()
+                        setFile(null)
+                        setResult(null)
+                        setFileSelected(false)
                       }}
                     >
                       <X className="w-4 h-4" />
@@ -326,83 +359,79 @@ export default function ResumePage() {
           </div>
         </div>
 
-            {result && (
-              <Card className="mt-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-2xl">
-                    <CheckCircle2 className="w-6 h-6 text-green-500" />
-                    Review Complete
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="contentAnalysis" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
-                      {feedbackOptions.contentAnalysis && (
-                        <TabsTrigger value="contentAnalysis">
-                          Content
-                        </TabsTrigger>
-                      )}
-                      {feedbackOptions.atsAnalysis && (
-                        <TabsTrigger value="atsAnalysis">ATS</TabsTrigger>
-                      )}
-                      {feedbackOptions.interviewSuggestions && (
-                        <TabsTrigger value="interviewSuggestions">
-                          Interview
-                        </TabsTrigger>
-                      )}
-                      {feedbackOptions.suggestions && (
-                        <TabsTrigger value="suggestions">
-                          Suggestions
-                        </TabsTrigger>
-                      )}
-                    </TabsList>
-                    <div className="mt-4">
-                      {feedbackOptions.contentAnalysis && (
-                        <TabsContent value="contentAnalysis">
-                          <div className="prose dark:prose-invert">
-                            <MarkdownPreview
-                              source={result?.contentAnalysis}
-                              style={{ padding: 16 }}
-                            />
-                          </div>
-                        </TabsContent>
-                      )}
-                      {feedbackOptions.atsAnalysis && (
-                        <TabsContent value="atsAnalysis">
-                          <div className="prose dark:prose-invert">
-                            <MarkdownPreview
-                              source={result?.atsAnalysis}
-                              style={{ padding: 16 }}
-                            />
-                          </div>
-                        </TabsContent>
-                      )}
-                      {feedbackOptions.interviewSuggestions && (
-                        <TabsContent value="interviewSuggestions">
-                          <div className="prose dark:prose-invert">
-                            <MarkdownPreview
-                              source={result?.interviewSuggestion}
-                              style={{ padding: 16 }}
-                            />
-                          </div>
-                        </TabsContent>
-                      )}
-                      {feedbackOptions.suggestions && (
-                        <TabsContent value="suggestions">
-                          <div className="prose dark:prose-invert">
-                            <MarkdownPreview
-                              source={result?.suggestions}
-                              style={{ padding: 16 }}
-                            />
-                          </div>
-                        </TabsContent>
-                      )}
-                    </div>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            )}
+        {result && (
+          <Card className="mt-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <CheckCircle2 className="w-6 h-6 text-green-500" />
+                Review Complete
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue={firstActiveTab || "contentAnalysis"} className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  {feedbackOptions.contentAnalysis && (
+                    <TabsTrigger value="contentAnalysis">Content</TabsTrigger>
+                  )}
+                  {feedbackOptions.atsAnalysis && (
+                    <TabsTrigger value="atsAnalysis">ATS</TabsTrigger>
+                  )}
+                  {feedbackOptions.interviewSuggestions && (
+                    <TabsTrigger value="interviewSuggestions">
+                      Interview
+                    </TabsTrigger>
+                  )}
+                  {feedbackOptions.suggestions && (
+                    <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+                  )}
+                </TabsList>
+                <div className="mt-4">
+                  {feedbackOptions.contentAnalysis && (
+                    <TabsContent value="contentAnalysis">
+                      <div className="prose dark:prose-invert">
+                        <MarkdownPreview
+                          source={result?.contentAnalysis}
+                          style={{ padding: 16 }}
+                        />
+                      </div>
+                    </TabsContent>
+                  )}
+                  {feedbackOptions.atsAnalysis && (
+                    <TabsContent value="atsAnalysis">
+                      <div className="prose dark:prose-invert">
+                        <MarkdownPreview
+                          source={result?.atsAnalysis}
+                          style={{ padding: 16 }}
+                        />
+                      </div>
+                    </TabsContent>
+                  )}
+                  {feedbackOptions.interviewSuggestions && (
+                    <TabsContent value="interviewSuggestions">
+                      <div className="prose dark:prose-invert">
+                        <MarkdownPreview
+                          source={result?.interviewSuggestion}
+                          style={{ padding: 16 }}
+                        />
+                      </div>
+                    </TabsContent>
+                  )}
+                  {feedbackOptions.suggestions && (
+                    <TabsContent value="suggestions">
+                      <div className="prose dark:prose-invert">
+                        <MarkdownPreview
+                          source={result?.suggestions}
+                          style={{ padding: 16 }}
+                        />
+                      </div>
+                    </TabsContent>
+                  )}
+                </div>
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
-  )
+  );
 }

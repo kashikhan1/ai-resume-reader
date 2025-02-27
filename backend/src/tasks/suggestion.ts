@@ -1,5 +1,5 @@
 import { task } from "@langchain/langgraph";
-import { llm } from "../llm-model/ollama";
+import { llm } from "../llm-model/model";
 
 export const suggestion = task("generateReview", async ({ resumeText, jobDescription }) => {
   const msg = await llm.invoke(`You are a professional resume reviewer with expertise in hiring, recruitment, and career coaching. Your task is to provide **clear, actionable feedback** tailored to the job description, if provided.

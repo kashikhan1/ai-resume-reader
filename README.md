@@ -42,6 +42,9 @@ This repository contains both **backend (Node.js, Express.js, LangGraph, OpenRou
 
 ---
 
+## DEMO
+https://www.loom.com/share/5b94c82d669948c59fd78d9c4afa3e51?sid=7744e27e-e093-43ca-94f5-84a11a560092
+
 ## 🛠️ **Installation & Setup**
 
 ### **1️⃣ Prerequisites**
@@ -63,7 +66,6 @@ cd ai-resume-reader
 # Install dependencies for both frontend & backend
 npm install
 ```
-
 ---
 
 ## 🚀 **Running the Application**
@@ -80,9 +82,9 @@ npm run dev
 
 create a `.env` file in the `backend/` directory and add the following:
 ```
-OLLAMA_BASE_URL=https://openrouter.ai/api/v1 # or any other base URL you want to use for example OPenRouter
-OLLAMA_MODEL=cognitivecomputations/dolphin3.0-mistral-24b:free # or any other model you want to use for example Mistral 24B
-OLLAMA_API_KEY=sk-xxxxxxxxx # or any other API key you want to use for example OpenRouter API key
+OPEN_ROUTER_BASE_URL=https://openrouter.ai/api/v1 # or any other base URL you want to use for example OPenRouter
+OPEN_ROUTER_MODEL=cognitivecomputations/dolphin3.0-mistral-24b:free # or any other model you want to use for example Mistral 24B
+OPEN_ROUTER_API_KEY=sk-xxxxxxxxx # or any other API key you want to use for example OpenRouter API key
 PORT=4000
 ```
 This starts the **Express server** with:
@@ -108,7 +110,7 @@ npm run dev
 
 create a `.env` file in the `frontend/` directory and add the following:
 ```
-NEXT_PUBLIC_API_URL=http://localhost:4000/api
+NEXT_PUBLIC_BACKEND_API_URL=http://localhost:4000/api
 ```
 
 This starts the **Next.js application** for a **modern UI** at **`http://localhost:3000`**.

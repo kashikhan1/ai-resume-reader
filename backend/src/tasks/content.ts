@@ -1,5 +1,5 @@
 import { task } from "@langchain/langgraph";
-import { llm } from "../llm-model/ollama";
+import { llm } from "../llm-model/model";
 
 export const content = task(
   "generateContent",
